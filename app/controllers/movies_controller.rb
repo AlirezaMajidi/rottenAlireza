@@ -12,6 +12,7 @@ class MoviesController < ApplicationController
 
   def index
     sort_by = params[:sort_by] || session[:sort_by]
+
     case sort_by
     when 'title'
       ordering,@title_header = {:order => :title}, 'hilite'
@@ -20,8 +21,33 @@ class MoviesController < ApplicationController
     else
       ordering  = {:order => :title}
     end
-    # @movies = Movie.all
+
+    @all_ratings = Movie.all_ratings
+    @selected_ratings = params[:ratings] || session[:ratings] || {}
+
+    if params[:sort_by] != session[:sort_by]
+      session[:sort_by] = sort_by
+      redirect_to :sort_by => sort_by, :ratings => @selected_ratings and return
+    end
+
+    if params[:ratings] != session[:ratings] and @selected_ratings != {}
+      session[:sort_by] = sort_by
+      session[:ratings] = @selected_ratings
+      redirect_to :sort_by => sort_by, :ratings => @selected_ratings and return
+    end
+
+    if @selected_ratings == {}
+      @selected_ratings = Hash.new
+      @all_ratings.each do |rating|
+        @selected_ratings[rating] = 1
+      end
+    end
+
     @movies = Movie.order(ordering[:order])
+    if(@selected_ratings.keys.any?)
+      @movies = @movies.where(:rating => @selected_ratings.keys)
+    end
+
   end
 
   def new
