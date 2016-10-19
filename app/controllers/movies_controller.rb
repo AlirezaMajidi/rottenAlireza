@@ -47,7 +47,6 @@ class MoviesController < ApplicationController
     if(@selected_ratings.keys.any?)
       @movies = @movies.where(:rating => @selected_ratings.keys)
     end
-
   end
 
   def new
